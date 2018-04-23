@@ -19,7 +19,8 @@ class SlackTextSpecTest extends Specification {
             text                                                        || expectedFirstWord | expectedSecondWord | expectedtext
             "add name public class{sdsajd asdsadsad} () fsfddsfs dasd"  || "add"             | "name"             | "public class{sdsajd asdsadsad} () fsfddsfs dasd"
             "add name  public class{sdsajd asdsadsad} () fsfddsfs dasd" || "add"             | "name"             | "public class{sdsajd asdsadsad} () fsfddsfs dasd"
-            "run bla"                                                   || "run"             | "bla"              | ""
+            "run bla param1 param2 "                                    || "run"             | "bla"              | "param1 param2"
+            "run bla"                                                   || "run"             | "bla"              | null
 
     }
 }
