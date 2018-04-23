@@ -45,7 +45,8 @@ class SlackappController {
         switch (command) {
         case ADD:
             String addScriptName = text.getSecondWord();
-            String code = text.getRemainingText();
+            String code = text.getRemainingText()
+                              .orElseThrow(RuntimeException::new);
             return service.add(addScriptName, code);
         case RM:
             String rmScriptName = text.getSecondWord();
@@ -53,10 +54,10 @@ class SlackappController {
         case RUN:
             String runScriptName = text.getSecondWord();
 
-            List<String> args = Optional.ofNullable(text.getRemainingText())
-                                        .map(s -> s.split(" "))
-                                        .map(Arrays::asList)
-                                        .orElse(Collections.emptyList());
+            List<String> args = text.getRemainingText()
+                                    .map(s -> s.split(" "))
+                                    .map(Arrays::asList)
+                                    .orElse(Collections.emptyList());
 
             return service.run(runScriptName, args);
         case LIST:

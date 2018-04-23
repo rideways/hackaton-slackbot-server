@@ -17,10 +17,10 @@ class SlackTextSpecTest extends Specification {
 
         where:
             text                                                        || expectedFirstWord | expectedSecondWord | expectedtext
-            "add name public class{sdsajd asdsadsad} () fsfddsfs dasd"  || "add"             | "name"             | "public class{sdsajd asdsadsad} () fsfddsfs dasd"
-            "add name  public class{sdsajd asdsadsad} () fsfddsfs dasd" || "add"             | "name"             | "public class{sdsajd asdsadsad} () fsfddsfs dasd"
-            "run bla param1 param2 "                                    || "run"             | "bla"              | "param1 param2"
-            "run bla"                                                   || "run"             | "bla"              | null
+            "add name public class{sdsajd asdsadsad} () fsfddsfs dasd"  || "add"             | "name"             | Optional.of("public class{sdsajd asdsadsad} () fsfddsfs dasd")
+            "add name  public class{sdsajd asdsadsad} () fsfddsfs dasd" || "add"             | "name"             | Optional.of("public class{sdsajd asdsadsad} () fsfddsfs dasd")
+            "run bla param1 param2 "                                    || "run"             | "bla"              | Optional.of("param1 param2")
+            "run bla"                                                   || "run"             | "bla"              | Optional.empty()
 
     }
 }

@@ -4,13 +4,15 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Optional;
+
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class SlackText {
 
     private final String firstWord;
     private final String secondWord;
-    private final String remainingText;
+    private final Optional<String> remainingText;
 
     static SlackTextBuilder builder(String text) {
         return new SlackTextBuilder(text);
@@ -33,17 +35,15 @@ class SlackText {
                                .trim();
             int index2 = text2.indexOf(" ");
 
-            String secondWord;
-            String remainingText = null;
             if (index2 == -1) {
-                secondWord = text2;
+                return new SlackText(firstWord, text2, Optional.empty());
             } else {
-                secondWord = text2.substring(0, index2);
-                remainingText = text2.substring(index2 + 1)
-                                     .trim();
+                String secondWord = text2.substring(0, index2);
+                Optional<String> remainingText = Optional.of(text2.substring(index2 + 1)
+                                                                  .trim());
+                return new SlackText(firstWord, secondWord, remainingText);
             }
 
-            return new SlackText(firstWord, secondWord, remainingText);
         }
 
     }
