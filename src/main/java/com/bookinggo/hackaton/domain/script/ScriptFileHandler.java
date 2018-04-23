@@ -9,6 +9,7 @@ import io.reactivex.Completable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 
@@ -17,6 +18,7 @@ import static io.reactivex.Single.error;
 import static io.reactivex.Single.just;
 import static java.util.UUID.randomUUID;
 
+@Slf4j
 @RequiredArgsConstructor
 class ScriptFileHandler {
 
@@ -36,8 +38,10 @@ class ScriptFileHandler {
                                           .map(File::new)
                                           .flatMap(this::checkStoragePermissions)
                                           .map(scriptsStorage -> buildOwnerScriptsDirectory(script, scriptsStorage))
+                                          .doOnSuccess(scriptsStorage -> log.info("Building scripts storage directory {}", scriptsStorage))
                                           .filter(File::mkdirs)
                                           .map(s -> buildScriptFile(s, scriptFileName))
+                                          .doOnSuccess(scriptFile -> log.info("Saving script file {}", scriptFile.getAbsolutePath()))
                                           .doOnSuccess(scriptFile -> fileHandler.saveFile(scriptFile, script.getContents()))
                                           .map(File::getAbsolutePath);
     }

@@ -5,6 +5,7 @@ import com.bookinggo.hackaton.domain.script.dto.ScriptDto;
 import io.reactivex.Single;
 import io.reactivex.functions.BiFunction;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import static io.reactivex.Single.just;
 import static java.time.Instant.now;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 class ScriptService {
@@ -58,16 +60,24 @@ class ScriptService {
 
     private Single<Long> saveScript(ScriptDto scriptDto,
                                     BiFunction<ScriptOwnerEntity, ScriptDto, ScriptEntity> scriptCreator) {
-        return just(scriptDto).map(ScriptDto::getOwnerUsername)
+        return just(scriptDto).doOnSuccess(dto -> log.info("Saving script {}", dto))
+                              .map(ScriptDto::getOwnerUsername)
+                              .doOnSuccess(username -> log.info("Looking up user with name {}", username))
                               .map(scriptOwnerRepository::findByUsername)
                               .filter(Optional::isPresent)
                               .map(Optional::get)
+                              .doOnSuccess(user -> log.info("User exists {}", user))
                               .switchIfEmpty(just(scriptDto).map(ScriptDto::getOwnerUsername)
+                                                            .doOnSuccess(username -> log.info("User with name {} does not exist, creating", username))
                                                             .map(this::createNewScriptOwner)
-                                                            .map(scriptOwnerRepository::save))
+                                                            .map(scriptOwnerRepository::save)
+                                                            .doOnSuccess(user -> log.info("User created {}", user)))
+                              .doOnSuccess(ignore -> log.info("Creating script"))
                               .zipWith(just(scriptDto), scriptCreator)
+                              .doOnSuccess(script -> log.info("Saving script {} in repository", script))
                               .map(scriptRepository::save)
-                              .map(ScriptEntity::getId);
+                              .map(ScriptEntity::getId)
+                              .doOnSuccess(id -> log.info("Script saved, id is {}", id));
     }
 
     private ScriptOwnerEntity createNewScriptOwner(String username) {
