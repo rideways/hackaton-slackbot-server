@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -53,7 +54,51 @@ public class SlackappControllerTest {
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                                               .content(value))
                .andExpect(MockMvcResultMatchers.status()
-                                               .isOk());
+                                               .isOk())
+               .andExpect(MockMvcResultMatchers.content()
+                                               .contentType(MediaType.APPLICATION_JSON_UTF8))
+               .andExpect(MockMvcResultMatchers.content()
+                                               .string("{\"text\":\"Bla\",\"attachments\":null}"));
+
+    }
+
+    @Test
+    public void adduScript() throws Exception {
+        Mockito.when(service.add("bla", getCode()))
+               .thenReturn(SlackResponse.builder()
+                                        .text("Bla")
+                                        .build());
+
+        String value = "token=1324324&text=" + URLEncoder.encode("addu bla <" + getURL() + ">", "UTF-8");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
+                                              .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                                              .content(value))
+               .andExpect(MockMvcResultMatchers.status()
+                                               .isOk())
+               .andExpect(MockMvcResultMatchers.content()
+                                               .contentType(MediaType.APPLICATION_JSON_UTF8))
+               .andExpect(MockMvcResultMatchers.content()
+                                               .string("{\"text\":\"Bla\",\"attachments\":null}"));
+    }
+
+    private String getURL() {
+        return "https://raw.githubusercontent.com/rideways/hackaton-slackbot-server/master/src/main/java/com/bookinggo/hackaton/HackatonSlackbotServerApplication.java";
+    }
+
+    private String getCode() {
+        return "package com.bookinggo.hackaton;\n" +
+               "\n" +
+               "import org.springframework.boot.SpringApplication;\n" +
+               "import org.springframework.boot.autoconfigure.SpringBootApplication;\n" +
+               "\n" +
+               "@SpringBootApplication\n" +
+               "public class HackatonSlackbotServerApplication {\n" +
+               "\n" +
+               "    public static void main(String[] args) {\n" +
+               "        SpringApplication.run(HackatonSlackbotServerApplication.class, args);\n" +
+               "    }\n" +
+               "}\n";
     }
 
     @Test

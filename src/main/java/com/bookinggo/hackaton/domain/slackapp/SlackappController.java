@@ -48,6 +48,20 @@ class SlackappController {
             String code = text.getRemainingText()
                               .orElseThrow(RuntimeException::new);
             return service.add(addScriptName, code);
+        case ADDU:
+            String addURLScriptName = text.getSecondWord();
+
+            if (text.getCodeFromURI()
+                    .isPresent()) {
+                return service.add(addURLScriptName,
+                                   text.getCodeFromURI()
+                                       .get());
+            }
+            else {
+                return SlackResponse.builder()
+                                    .text("There were some error getting the code by URL")
+                                    .build();
+            }
         case RM:
             String rmScriptName = text.getSecondWord();
             return service.remove(rmScriptName);

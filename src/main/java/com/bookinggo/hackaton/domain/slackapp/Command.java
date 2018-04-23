@@ -7,7 +7,8 @@ import java.util.Arrays;
 @Getter
 enum Command {
 
-    ADD("Add new custom script. Example: /superbot add scriptName <code>"),
+    ADD("Add new script. Example: /superbot add scriptName <code>"),
+    ADDU("Add new script with url. Example: /superbot add scriptName http://example.com/code.py"),
     RM("Remove script by name. Example: /superbot rm scriptName"),
     RUN("Run command with follow parameters. Example: /superbot run scriptName param1 param2"),
     LIST("List all available scripts"),
