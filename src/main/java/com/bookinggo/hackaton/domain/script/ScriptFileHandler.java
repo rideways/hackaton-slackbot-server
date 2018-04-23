@@ -10,6 +10,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 
@@ -19,6 +20,7 @@ import static io.reactivex.Single.just;
 import static java.util.UUID.randomUUID;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 class ScriptFileHandler {
 
