@@ -90,21 +90,48 @@ public class SlackappControllerTest {
     }
 
     private String getURL() {
-        return "https://raw.githubusercontent.com/rideways/hackaton-slackbot-server/master/src/main/java/com/bookinggo/hackaton/HackatonSlackbotServerApplication.java";
+        return "https://raw.githubusercontent.com/rideways/hackaton-slackbot-server/master/src/test/groovy/com/bookinggo/hackaton/FileSpecification.groovy";
     }
 
     private String getCode() {
-        return "package com.bookinggo.hackaton;\n" +
+        return "package com.bookinggo.hackaton\n" +
                "\n" +
-               "import org.springframework.boot.SpringApplication;\n" +
-               "import org.springframework.boot.autoconfigure.SpringBootApplication;\n" +
+               "import org.junit.runners.model.InitializationError\n" +
+               "import spock.lang.Specification\n" +
                "\n" +
-               "@SpringBootApplication\n" +
-               "public class HackatonSlackbotServerApplication {\n" +
+               "import static java.util.UUID.randomUUID\n" +
+               "import static org.apache.commons.io.FileUtils.deleteDirectory\n" +
+               "import static org.apache.commons.io.FileUtils.getTempDirectoryPath\n" +
                "\n" +
-               "    public static void main(String[] args) {\n" +
-               "        SpringApplication.run(HackatonSlackbotServerApplication.class, args);\n" +
+               "class FileSpecification extends Specification {\n" +
+               "\n" +
+               "    private static final String temporaryTestsRoot = \"${tempDirectoryPath}/slack-bot-server-tests-${randomUUID()}/\"\n" +
+               "    private String temporaryTestRoot\n" +
+               "\n" +
+               "    def setupSpec() {\n" +
+               "        createDirectories temporaryTestsRoot\n" +
                "    }\n" +
+               "\n" +
+               "    def setup() {\n" +
+               "        temporaryTestRoot = \"${temporaryTestsRoot}/${randomUUID()}/\"\n" +
+               "        createDirectories temporaryTestRoot\n" +
+               "    }\n" +
+               "\n" +
+               "\n" +
+               "    def cleanupSpec() {\n" +
+               "        deleteDirectory new File(temporaryTestsRoot)\n" +
+               "    }\n" +
+               "\n" +
+               "    protected getTestTemporaryPath() {\n" +
+               "        return temporaryTestRoot\n" +
+               "    }\n" +
+               "\n" +
+               "    protected static createDirectories(String path) {\n" +
+               "        if (!new File(path).mkdirs()) {\n" +
+               "            throw new InitializationError(\"Temporary testing directory '${path}' could not be created\")\n" +
+               "        }\n" +
+               "    }\n" +
+               "\n" +
                "}\n";
     }
 
