@@ -23,3 +23,6 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+scripts/
+hackaton-slackbot-server-db.mv.db

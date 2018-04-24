@@ -52,7 +52,7 @@ class SlackappService {
                                   .stream()
                                   .map(s -> "script [" + s.getName() + "] created by <@" + s.getOwnerSlackUserId() + "> with language " + s.getLanguage())
                                   .reduce((s1, s2) -> s1 + "\n" + s2)
-                                  .orElse("There are any script");
+                                  .orElse("There aren't any script");
 
         return SlackResponse.builder()
                             .text(text)
