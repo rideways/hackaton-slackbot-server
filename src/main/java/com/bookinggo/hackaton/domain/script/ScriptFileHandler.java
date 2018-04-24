@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Files;
 
 import static io.reactivex.Completable.fromSingle;
 import static io.reactivex.Single.error;

@@ -31,7 +31,10 @@ class ScriptOwnerEntity {
     @GeneratedValue(strategy = SEQUENCE)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String username;
+
+    @Column(nullable = false, unique = true)
+    private String slackUserId;
 
 }
