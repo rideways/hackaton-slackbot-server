@@ -7,8 +7,10 @@ import com.bookinggo.hackaton.domain.socket.PortChecker;
 import com.bookinggo.hackaton.domain.socket.SocketClientRunner;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -21,6 +23,7 @@ import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.Pa
 import static com.bookinggo.hackaton.domain.worker.ScriptExecutorWorkerApplication.SCRIPT_SOCKET_PORT;
 import static java.util.Collections.singletonMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScriptRunnerService {
@@ -33,18 +36,31 @@ public class ScriptRunnerService {
     private final FileHandler fileHandler;
     private final ScriptClientRunnerRegistry scriptClientRunnerRegistry;
 
+    @PostConstruct
+    public void startAllScriptsWorkers() {
+        scriptRepository.findAll()
+                        .forEach(this::startScriptWorker);
+    }
+
     public Optional<String> runScript(String scriptName, List<String> parameters) {
         SocketClientRunner socketClientRunner = scriptClientRunnerRegistry.get(scriptName)
                                                                           .orElseThrow(() -> new RuntimeException("script runner not found")); // TODO: custom exception
 
         sendAndFailIfNotOk(SCRIPT_RUN_START, socketClientRunner::sendAndReceive, socketClientRunner::close);
         parameters.forEach(parameter -> sendAndFailIfNotOk(parameter, socketClientRunner::sendAndReceive, socketClientRunner::close));
-        return socketClientRunner.sendAndReceive(SCRIPT_RUN_END);
+        log.info("Script run end? " + socketClientRunner.sendAndReceive(SCRIPT_RUN_END));
+        socketClientRunner.sendAndReceive("BLESSYOU");
+        Optional<String> blessyou = socketClientRunner.sendAndReceive("BLESSYOU");
+        log.info("amen? " + blessyou);
+        return blessyou;
     }
 
     public void startScriptWorker(long scriptId) {
-        ScriptEntity scriptEntity = scriptRepository.findById(scriptId)
-                                                    .orElseThrow(() -> new ScriptNotFoundException(scriptId));
+        startScriptWorker(scriptRepository.findById(scriptId)
+                                          .orElseThrow(() -> new ScriptNotFoundException(scriptId)));
+    }
+
+    public void startScriptWorker(ScriptEntity scriptEntity) {
         String scriptContent = fileHandler.readFile(scriptEntity.getLocation());
         SocketClientRunner socketClientRunner = runWorkerGetClient();
 
@@ -74,8 +90,13 @@ public class ScriptRunnerService {
     }
 
     private <T> void sendAndFailIfNotOk(T message, Function<T, Optional<String>> sender, Runnable closeFunction) {
+        log.info("Sending " + message);
         sender.apply(message)
-              .filter(OK.name()::equals)
+              .map(reply -> {
+                  log.info("RES_: " + reply);
+                  return reply;
+              })
+              .filter(m -> m.startsWith(OK.name()))
               .orElseThrow(() -> {
                   closeFunction.run();
                   return new RuntimeException("Socket unresponsive");

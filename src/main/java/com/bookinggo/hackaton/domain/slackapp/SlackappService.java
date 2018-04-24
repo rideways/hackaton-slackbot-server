@@ -64,6 +64,8 @@ class SlackappService {
         String response = scriptRunnerService.runScript(scriptName, args)
                                              .orElse("Running scripts didn't return anything");
 
+        log.info("Response is " + response);
+
         return SlackResponse.builder()
                             .text(response)
                             .build();

@@ -4,6 +4,7 @@ import com.sun.akuma.Daemon;
 import com.sun.akuma.JavaVMArguments;
 import lombok.SneakyThrows;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -56,20 +57,14 @@ public class ProcessSplitter {
     @SneakyThrows
     private static JavaVMArguments appendJvmArgsToCurrent(JvmArgumentsProvider jvmArgumentsProvider, Map<String, String> childJvmArgs) {
         JavaVMArguments jvmArgs = new JavaVMArguments();
-        boolean userArgsAdded = childJvmArgs.isEmpty();
-        for (String currentJvmArg : jvmArgumentsProvider.getCurrentArguments()) {
-            jvmArgs.add(currentJvmArg);
-            if (!userArgsAdded && currentJvmArg.startsWith("-D")) {
-                childJvmArgs.entrySet()
-                            .stream()
-                            .map(entry -> "-D" + entry.getKey() + "=" + entry.getValue())
-                            .forEach(jvmArgs::add);
-                userArgsAdded = true;
-            }
-        }
-        if (!userArgsAdded) {
-            throw new JvmArgumentsConcatenationException();
-        }
+        jvmArgs.add("-Xdebug");
+        jvmArgs.add("-Xrunjdwp:server=y,transport=dt_socket,address=8081,suspend=n");
+        childJvmArgs.entrySet()
+                    .stream()
+                    .map(entry -> "-D" + entry.getKey() + "=" + entry.getValue())
+                    .forEach(jvmArgs::add);
+        jvmArgs.add("-jar");
+        jvmArgs.add("/home/szymanskip/Code/hackaton-slackbot-server/target/hackaton-slackbot-server-0.0.1-SNAPSHOT.jar");
         return jvmArgs;
     }
 

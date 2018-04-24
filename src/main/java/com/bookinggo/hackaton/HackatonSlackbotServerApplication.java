@@ -7,7 +7,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import static java.util.Objects.*;
+import java.util.Arrays;
+import java.util.Optional;
+
+import static com.bookinggo.hackaton.domain.common.ProcessLogger.writeLog;
 
 @SpringBootApplication
 public class HackatonSlackbotServerApplication {
@@ -15,6 +18,7 @@ public class HackatonSlackbotServerApplication {
     private static ProcessForker FORKER;
 
     public static void main(String[] args) {
+        writeLog("Starting process with args " + Arrays.toString(args));
         ProcessSplitter.splitProcess(forker -> springAppMain(args, forker),
                                      () -> ScriptExecutorWorkerApplication.main(args));
     }
@@ -26,6 +30,7 @@ public class HackatonSlackbotServerApplication {
 
     @Bean
     ProcessForker forker() {
-        return requireNonNull(FORKER);
+        return Optional.ofNullable(FORKER)
+                       .orElseGet(() -> childJvmArgs -> {throw new RuntimeException("bla");});
     }
 }
