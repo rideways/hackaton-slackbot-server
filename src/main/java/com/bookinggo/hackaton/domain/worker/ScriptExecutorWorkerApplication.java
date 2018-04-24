@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.bookinggo.hackaton.domain.bla.ScriptRunnerAdapterStaticFactory.createAdapter;
+import static com.bookinggo.hackaton.domain.common.ProcessLogger.writeLog;
 import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.ERROR_LANGUAGE_NOT_RECOGNIZED;
 import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.ERROR_UNKNOWN;
 import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.OK;
@@ -32,6 +33,7 @@ public class ScriptExecutorWorkerApplication implements RequestHandler {
     public static void main(String[] args) {
         int socketPort = parseInt(getProperty(SCRIPT_SOCKET_PORT));
 
+        writeLog("starting worker listening on port " + socketPort);
         new SocketServerRunner(socketPort, new ScriptExecutorWorkerApplication()).startListening();
     }
 

@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.function.Function;
 
+import static com.bookinggo.hackaton.domain.common.ProcessLogger.writeLog;
 import static java.util.Optional.ofNullable;
 
 @Slf4j
@@ -35,17 +36,19 @@ public class SocketServerRunner {
                 BufferedReader inputReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
         ) {
             String inputLine;
+            writeLog("Sockets created, waiting for request");
             while ((inputLine = inputReader.readLine()) != null) {
+                writeLog("Request came through, parsing: " + inputLine);
                 try {
                     String outputLine = ofNullable(requestHandler.apply(inputLine)).orElse("");
                     outputWriter.println(outputLine);
                 } catch (Exception e) {
-                    log.error("Exception thrown while processing line", e);
+                    writeLog("Exception thrown while processing line" + e.getMessage());
                 }
             }
 
         } catch (Exception e) {
-            log.error("Exception thrown from socket", e);
+            writeLog("Exception thrown from socket" + e.getMessage());
         }
     }
 
