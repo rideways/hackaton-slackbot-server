@@ -22,7 +22,7 @@ import static java.util.Collections.singletonMap;
 
 @Service
 @RequiredArgsConstructor
-class ScriptRunnerService {
+public class ScriptRunnerService {
 
     private static final String WORKER_HOSTNAME = "localhost";
 
@@ -32,7 +32,7 @@ class ScriptRunnerService {
     private final FileHandler fileHandler;
     private final ScriptClientRunnerRegistry scriptClientRunnerRegistry;
 
-    Optional<String> runScript(String scriptName, List<String> parameters) {
+    public Optional<String> runScript(String scriptName, List<String> parameters) {
         SocketClientRunner socketClientRunner = scriptClientRunnerRegistry.get(scriptName)
                                                                           .orElseThrow(() -> new RuntimeException("script runner not found")); // TODO: custom exception
 
@@ -41,7 +41,7 @@ class ScriptRunnerService {
         return socketClientRunner.sendAndReceive(SCRIPT_RUN_END);
     }
 
-    void startScriptWorker(long scriptId) {
+    public void startScriptWorker(long scriptId) {
         ScriptEntity scriptEntity = scriptRepository.findById(scriptId)
                                                     .orElseThrow(() -> new ScriptNotFoundException(scriptId));
         String scriptContent = fileHandler.readFile(scriptEntity.getLocation());

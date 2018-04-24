@@ -1,25 +1,22 @@
 package com.bookinggo.hackaton.domain.slackapp;
 
 import com.bookinggo.hackaton.domain.script.ScriptFacade;
+import com.bookinggo.hackaton.domain.script.ScriptRunnerService;
 import com.bookinggo.hackaton.domain.script.dto.ScriptDto;
 import com.bookinggo.hackaton.domain.slackapp.dto.response.SlackResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 class SlackappService {
 
     private final ScriptFacade scriptFacade;
-
-    @Autowired
-    SlackappService(ScriptFacade scriptFacade) {
-        this.scriptFacade = scriptFacade;
-    }
+    private final ScriptRunnerService scriptRunnerService;
 
     SlackResponse add(String ownerUsername, String slackUserId, String scriptName, String language, String code) {
         log.info("added script " + scriptName + "with code:" + code);
@@ -31,6 +28,8 @@ class SlackappService {
                                                          .ownerUsername(ownerUsername)
                                                          .ownerSlackUserId(slackUserId)
                                                          .build());
+
+        scriptRunnerService.startScriptWorker(scriptId);
 
         return SlackResponse.builder()
                             .text("added code successful id [" + scriptId + "]")
@@ -62,8 +61,11 @@ class SlackappService {
     SlackResponse run(String scriptName, List<String> args) {
         log.info("running script " + scriptName + " with args " + args);
 
+        String response = scriptRunnerService.runScript(scriptName, args)
+                                             .orElse("Running scripts didn't return anything");
+
         return SlackResponse.builder()
-                            .text("Running scripts")
+                            .text(response)
                             .build();
     }
 
