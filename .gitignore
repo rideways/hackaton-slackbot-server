@@ -26,3 +26,4 @@
 
 scripts/
 hackaton-slackbot-server-db.mv.db
+hackaton-slackbot-server-db.trace.db
