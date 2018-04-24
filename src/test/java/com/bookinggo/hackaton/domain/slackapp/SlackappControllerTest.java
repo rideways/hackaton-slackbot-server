@@ -2,6 +2,7 @@ package com.bookinggo.hackaton.domain.slackapp;
 
 import com.bookinggo.hackaton.domain.slackapp.dto.response.SlackResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,12 +44,15 @@ public class SlackappControllerTest {
 
     @Test
     public void addScript() throws Exception {
-        Mockito.when(service.add("bla", "pulbics dsd{ {}SAdsad as"))
+        String userName = "name";
+        String userId = "UAAG60W49";
+
+        Mockito.when(service.add(userName, userId, "bla", "groovy", "pulbics dsd{ {}SAdsad as"))
                .thenReturn(SlackResponse.builder()
                                         .text("Bla")
                                         .build());
 
-        String value = "token=1324324&text=add%20bla%20pulbics%20dsd%7B%20%7B%7DSAdsad%20as";
+        String value = getRequest(userName, userId, "add bla pulbics dsd{ {}SAdsad as");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -64,12 +68,15 @@ public class SlackappControllerTest {
 
     @Test
     public void adduScript() throws Exception {
-        Mockito.when(service.add("bla", getCode()))
+        String userName = "name";
+        String userId = "123";
+
+        Mockito.when(service.add(userName, userId, "bla", "groovy", getCode()))
                .thenReturn(SlackResponse.builder()
                                         .text("Bla")
                                         .build());
 
-        String value = "token=1324324&text=" + URLEncoder.encode("addu bla <" + getURL() + ">", "UTF-8");
+        String value = getRequest(userName, userId, "addu bla <" + getURL() + ">");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -108,7 +115,7 @@ public class SlackappControllerTest {
                                         .text("Bla")
                                         .build());
 
-        String value = "token=1324324&text=rm%20bla%20pulbics%20dsd%7B%20%7B%7DSAdsad%20as";
+        String value = getRequest("name", "ABC123", "rm bla pulbics dsd{ {}SAdsad as");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -124,7 +131,7 @@ public class SlackappControllerTest {
                                         .text("Bla")
                                         .build());
 
-        String value = "token=1324324&text=run%20%20bla%20param1%20param2";
+        String value = getRequest("name", "ABC123", "run  bla param1 param2");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -140,12 +147,46 @@ public class SlackappControllerTest {
                                         .text("Bla")
                                         .build());
 
-        String value = "token=1324324&text=run%20bla";
+        String value = getRequest("name", "ABC123", "run  bla");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
                                               .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                                               .content(value))
                .andExpect(MockMvcResultMatchers.status()
                                                .isOk());
+    }
+
+    @SneakyThrows
+    private String getRequest(String userName, String userId, String text) {
+
+        return "team_domain=" + URLEncoder.encode("bgohackaton", "UTF-8") +
+               "&channel_id=" + URLEncoder.encode("DAARFSN9J", "UTF-8") +
+               "&channel_name=" + URLEncoder.encode("directmessage", "UTF-8") +
+               "&user_id=" + URLEncoder.encode(userId, "UTF-8") +
+               "&user_name=" + URLEncoder.encode(userName, "UTF-8") +
+               "&command=" + URLEncoder.encode("/superbot", "UTF-8") +
+               "&text=" + URLEncoder.encode(text, "UTF-8") +
+               "&response_url=" + URLEncoder.encode("https://hooks.slack.com/commands/TABV3F3FG/351535594417/xSvpeAqCfBhPmqnTyvqF9Pu5", "UTF-8") +
+               "&trigger_id=" + URLEncoder.encode("351535594465.351989513526.dffcee5c6adee435f0fcc37e2aed7a72", "UTF-8");
+    }
+
+    @Test
+    public void list() throws Exception {
+        Mockito.when(service.list())
+               .thenReturn(SlackResponse.builder()
+                                        .text("Bla")
+                                        .build());
+
+        String value = getRequest("name", "ABC123", "list");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/slackapp")
+                                              .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                                              .content(value))
+               .andExpect(MockMvcResultMatchers.status()
+                                               .isOk())
+               .andExpect(MockMvcResultMatchers.content()
+                                               .contentType(MediaType.APPLICATION_JSON_UTF8))
+               .andExpect(MockMvcResultMatchers.content()
+                                               .string("{\"text\":\"Bla\",\"attachments\":null}"));
     }
 }

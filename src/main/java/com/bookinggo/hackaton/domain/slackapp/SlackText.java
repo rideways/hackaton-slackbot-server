@@ -35,6 +35,10 @@ class SlackText {
             String text = this.text.trim();
 
             int index = text.indexOf(" ");
+
+            if (index == -1) {
+                return new SlackText(text, null, Optional.empty(), Optional.empty());
+            }
             String firstWord = text.substring(0, index);
 
             String text2 = text.substring(index + 1)

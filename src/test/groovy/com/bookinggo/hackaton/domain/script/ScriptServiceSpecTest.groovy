@@ -23,10 +23,11 @@ class ScriptServiceSpecTest extends Specification {
             def ownerUsername = randomAlphanumeric 5
             def scriptName = randomAlphanumeric 5
             def scriptLanguage = randomAlphanumeric 5
+            def ownerSlackUserId = randomAlphanumeric 5
 
         and:
-            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername)
-            def scriptOwner = new ScriptOwnerEntity(1L, ownerUsername)
+            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername, ownerSlackUserId)
+            def scriptOwner = new ScriptOwnerEntity(1L, ownerUsername, ownerSlackUserId)
 
         when:
             def actualId = scriptService.createScript(dto)
@@ -52,9 +53,10 @@ class ScriptServiceSpecTest extends Specification {
             def ownerUsername = randomAlphanumeric 5
             def scriptName = randomAlphanumeric 5
             def scriptLanguage = randomAlphanumeric 5
+            def ownerSlackUserId = randomAlphanumeric 5
 
         and:
-            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername)
+            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername, ownerSlackUserId)
 
         when:
             def actualId = scriptService.createScript(dto)
@@ -84,11 +86,12 @@ class ScriptServiceSpecTest extends Specification {
             def scriptName = randomAlphanumeric 5
             def scriptLanguage = randomAlphanumeric 5
             def scriptLocation = randomAlphanumeric 5
+            def ownerSlackUserId = randomAlphanumeric 5
 
         and:
-            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername)
+            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername, ownerSlackUserId)
             def ownerId = 1L
-            def scriptOwner = new ScriptOwnerEntity(ownerId, ownerUsername)
+            def scriptOwner = new ScriptOwnerEntity(ownerId, ownerUsername, ownerSlackUserId)
             def scriptId = 69L
             def scriptEntity = new ScriptEntity(null, null, null, null, null, scriptLocation, scriptOwner)
 
@@ -118,13 +121,14 @@ class ScriptServiceSpecTest extends Specification {
             def scriptName = randomAlphanumeric 5
             def scriptLanguage = randomAlphanumeric 5
             def scriptLocation = randomAlphanumeric 5
+            def ownerSlackUserId = randomAlphanumeric 5
 
         and:
-            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername)
+            def dto = new ScriptDto(scriptName, "testContents", scriptLanguage, ownerUsername, ownerSlackUserId)
             def ownerId = 1L
-            def scriptOwner = new ScriptOwnerEntity(ownerId, ownerUsername)
+            def scriptOwner = new ScriptOwnerEntity(ownerId, ownerUsername, ownerSlackUserId)
             def scriptId = 69L
-            def scriptEntity = new ScriptEntity(null, null, null, null, null, scriptLocation, new ScriptOwnerEntity(ownerId + 1, ownerUsername))
+            def scriptEntity = new ScriptEntity(null, null, null, null, null, scriptLocation, new ScriptOwnerEntity(ownerId + 1, ownerUsername, ownerSlackUserId))
 
         when:
             scriptService.updateScript(scriptId, dto)

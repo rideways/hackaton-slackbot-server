@@ -26,7 +26,8 @@ class ScriptFileHandlerSpecTest extends FileSpecification {
         and:
             def scriptContents = randomAlphanumeric 100
             def ownerUsername = randomAlphanumeric 5
-            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername)
+            def ownerSlackUserId = randomAlphanumeric 5
+            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername, ownerSlackUserId)
 
         when:
             def result = scriptFileHandler.saveToFile(scriptDto)
@@ -48,7 +49,8 @@ class ScriptFileHandlerSpecTest extends FileSpecification {
         and:
             def scriptContents = randomAlphanumeric 100
             def ownerUsername = randomAlphanumeric 5
-            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername)
+            def ownerSlackUserId = randomAlphanumeric 5
+            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername, ownerSlackUserId)
 
         when:
             scriptFileHandler.updateInFile(scriptDto,
@@ -66,11 +68,12 @@ class ScriptFileHandlerSpecTest extends FileSpecification {
         setup:
             def storagePath = "${testTemporaryPath}/${randomAlphanumeric(10)}/"
             new File(storagePath).createNewFile()
-
         and:
             def scriptContents = randomAlphanumeric 100
             def ownerUsername = randomAlphanumeric 5
-            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername)
+            def ownerSlackUserId = randomAlphanumeric 5
+
+            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername, ownerSlackUserId)
 
         when:
             scriptFileHandler.saveToFile(scriptDto)
@@ -92,7 +95,9 @@ class ScriptFileHandlerSpecTest extends FileSpecification {
         and:
             def scriptContents = randomAlphanumeric 100
             def ownerUsername = randomAlphanumeric 5
-            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername)
+            def ownerSlackUserId = randomAlphanumeric 5
+
+            def scriptDto = new ScriptDto(null, scriptContents, null, ownerUsername, ownerSlackUserId)
 
         when:
             scriptFileHandler.saveToFile(scriptDto)

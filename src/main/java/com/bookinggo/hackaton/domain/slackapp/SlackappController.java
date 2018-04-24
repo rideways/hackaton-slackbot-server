@@ -1,5 +1,6 @@
 package com.bookinggo.hackaton.domain.slackapp;
 
+import com.bookinggo.hackaton.domain.slackapp.dto.request.SlackRequest;
 import com.bookinggo.hackaton.domain.slackapp.dto.response.SlackResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,14 +33,19 @@ class SlackappController {
     @ResponseBody
     @ResponseStatus(OK)
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    SlackResponse run(@RequestBody MultiValueMap<String, List<String>> slackRequest) {
-        if (slackRequest.get("text") == null) {
-            throw new IllegalArgumentException("missing text key");
-        }
+    SlackResponse run(@RequestBody MultiValueMap<String, List<String>> requestMap) {
+        log.info("Request: " + requestMap.keySet()
+                                         .stream()
+                                         .map(s -> s + "=" + requestMap.get(s))
+                                         .reduce((s1, s2) -> s1 + "\n" + s2)
+                                         .orElse("empty"));
 
-        SlackText text = SlackText.builder(String.valueOf(slackRequest.get("text")
-                                                                      .get(0)))
+        SlackRequest slackRequest = SlackRequest.builder(requestMap)
+                                                .build();
+
+        SlackText text = SlackText.builder(slackRequest.getText())
                                   .build();
+
         Command command = Command.of(text.getFirstWord());
 
         switch (command) {
@@ -47,13 +53,13 @@ class SlackappController {
             String addScriptName = text.getSecondWord();
             String code = text.getRemainingText()
                               .orElseThrow(RuntimeException::new);
-            return service.add(addScriptName, code);
+            return service.add(slackRequest.getUserName(), slackRequest.getUserId(), addScriptName, "groovy", code);
         case ADDU:
             String addURLScriptName = text.getSecondWord();
 
             if (text.getCodeFromURI()
                     .isPresent()) {
-                return service.add(addURLScriptName,
+                return service.add(slackRequest.getUserName(), slackRequest.getUserId(), addURLScriptName, "groovy",
                                    text.getCodeFromURI()
                                        .get());
             }
@@ -82,5 +88,4 @@ class SlackappController {
                             .text(Command.toHelp())
                             .build();
     }
-
 }

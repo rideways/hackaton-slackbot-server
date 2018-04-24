@@ -9,10 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static io.reactivex.Single.just;
 import static java.time.Instant.now;
 
 @Slf4j
@@ -60,30 +61,45 @@ class ScriptService {
 
     private Single<Long> saveScript(ScriptDto scriptDto,
                                     BiFunction<ScriptOwnerEntity, ScriptDto, ScriptEntity> scriptCreator) {
-        return just(scriptDto).doOnSuccess(dto -> log.info("Saving script {}", dto))
-                              .map(ScriptDto::getOwnerUsername)
-                              .doOnSuccess(username -> log.info("Looking up user with name {}", username))
-                              .map(scriptOwnerRepository::findByUsername)
-                              .filter(Optional::isPresent)
-                              .map(Optional::get)
-                              .doOnSuccess(user -> log.info("User exists {}", user))
-                              .switchIfEmpty(just(scriptDto).map(ScriptDto::getOwnerUsername)
-                                                            .doOnSuccess(username -> log.info("User with name {} does not exist, creating", username))
-                                                            .map(this::createNewScriptOwner)
-                                                            .map(scriptOwnerRepository::save)
-                                                            .doOnSuccess(user -> log.info("User created {}", user)))
-                              .doOnSuccess(ignore -> log.info("Creating script"))
-                              .zipWith(just(scriptDto), scriptCreator)
-                              .doOnSuccess(script -> log.info("Saving script {} in repository", script))
-                              .map(scriptRepository::save)
-                              .map(ScriptEntity::getId)
-                              .doOnSuccess(id -> log.info("Script saved, id is {}", id));
+        return Single.just(scriptDto)
+                     .doOnSuccess(dto -> log.info("Saving script {}", dto))
+                     .map(ScriptDto::getOwnerUsername)
+                     .doOnSuccess(username -> log.info("Looking up user with name {}", username))
+                     .map(scriptOwnerRepository::findByUsername)
+                     .filter(Optional::isPresent)
+                     .map(Optional::get)
+                     .doOnSuccess(user -> log.info("User exists {}", user))
+                     .switchIfEmpty(Single.just(scriptDto)
+                                          .map(s -> createNewScriptOwner(s.getOwnerUsername(), s.getOwnerSlackUserId()))
+                                          .map(scriptOwnerRepository::save)
+                                          .doOnSuccess(user -> log.info("User created {}", user)))
+                     .doOnSuccess(ignore -> log.info("Creating script"))
+                     .zipWith(Single.just(scriptDto), scriptCreator)
+                     .doOnSuccess(script -> log.info("Saving script {} in repository", script))
+                     .map(scriptRepository::save)
+                     .map(ScriptEntity::getId)
+                     .doOnSuccess(id -> log.info("Script saved, id is {}", id));
     }
 
-    private ScriptOwnerEntity createNewScriptOwner(String username) {
+    private ScriptOwnerEntity createNewScriptOwner(String username, String slackUserId) {
         return ScriptOwnerEntity.builder()
                                 .username(username)
+                                .slackUserId(slackUserId)
                                 .build();
+    }
+
+    List<ScriptDto> getScripts() {
+        return scriptRepository.findAll()
+                               .stream()
+                               .map(e -> ScriptDto.builder()
+                                                  .name(e.getName())
+                                                  .language(e.getLanguage())
+                                                  .ownerUsername(e.getOwner()
+                                                                  .getUsername())
+                                                  .ownerSlackUserId(e.getOwner()
+                                                                     .getSlackUserId())
+                                                  .build())
+                               .collect(Collectors.toList());
     }
 
 }
