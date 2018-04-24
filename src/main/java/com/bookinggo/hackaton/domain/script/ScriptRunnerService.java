@@ -6,6 +6,7 @@ import com.bookinggo.hackaton.domain.process.ProcessSplitter.ProcessForker;
 import com.bookinggo.hackaton.domain.socket.PortChecker;
 import com.bookinggo.hackaton.domain.socket.SocketClientRunner;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,11 +51,12 @@ public class ScriptRunnerService {
         initializeWorker(scriptEntity, scriptContent, socketClientRunner);
     }
 
+    @SneakyThrows
     private SocketClientRunner runWorkerGetClient() {
         int port = portChecker.getAvailableWorkerPort()
                               .orElseThrow(() -> new RuntimeException("No worker port available"));
         forker.fork(singletonMap(SCRIPT_SOCKET_PORT, String.valueOf(port)));
-
+        Thread.sleep(1000);
         return new SocketClientRunner(WORKER_HOSTNAME, port);
     }
 
