@@ -1,3 +1,3 @@
-{ String message, String sender, String channel ->
-    "Hello, message was: " + message
+{ String sender, String channel, String message ->
+    "Hello " + sender + " and welcome on " + channel + ". Message was: " + message
 }
