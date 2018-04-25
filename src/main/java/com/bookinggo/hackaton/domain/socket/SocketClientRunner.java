@@ -19,6 +19,7 @@ public class SocketClientRunner {
     public SocketClientRunner(String host, int port) {
         log.info("Opening up socket {}:{}", host, port);
         try {
+            Thread.sleep(1000);
             workerSocket = new Socket(host, port);
             outputWriter = new PrintWriter(workerSocket.getOutputStream(), true);
             inputReader = new BufferedReader(new InputStreamReader(workerSocket.getInputStream()));

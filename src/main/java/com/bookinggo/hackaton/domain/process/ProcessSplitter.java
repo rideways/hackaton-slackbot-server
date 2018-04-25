@@ -3,13 +3,14 @@ package com.bookinggo.hackaton.domain.process;
 import com.sun.akuma.Daemon;
 import com.sun.akuma.JavaVMArguments;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import static java.util.Collections.emptyMap;
 
+@Slf4j
 public class ProcessSplitter {
 
     public interface ProcessForker {
@@ -64,8 +65,26 @@ public class ProcessSplitter {
                     .map(entry -> "-D" + entry.getKey() + "=" + entry.getValue())
                     .forEach(jvmArgs::add);
         jvmArgs.add("-jar");
-        jvmArgs.add("/home/szymanskip/Code/hackaton-slackbot-server/target/hackaton-slackbot-server-0.0.1-SNAPSHOT.jar");
+
+        String jarLocation = getParentDirectoryFromJar();
+        log.info("jar location: " + jarLocation);
+
+        jvmArgs.add(jarLocation);
         return jvmArgs;
+    }
+
+    public static String getParentDirectoryFromJar() {
+        String dirtyPath = ProcessSplitter.class.getProtectionDomain()
+                                                .getCodeSource()
+                                                .getLocation()
+                                                .getPath();
+        String jarPath = dirtyPath.replaceAll("^.*file:/", "/"); //removes file:/ and everything before it
+        jarPath = jarPath.replaceAll("jar!.*", "jar"); //removes everything after .jar, if .jar exists in dirtyPath
+        jarPath = jarPath.replaceAll("%20", " "); //necessary if path has spaces within
+        if (!jarPath.endsWith(".jar")) { // this is needed if you plan to run the app using Spring Tools Suit play button.
+            jarPath = jarPath.replaceAll("/classes/.*", "/classes/");
+        }
+        return jarPath;
     }
 
 }
