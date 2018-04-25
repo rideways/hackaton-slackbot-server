@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -78,6 +79,10 @@ class SlackappController {
                                     .map(s -> s.split(" "))
                                     .map(Arrays::asList)
                                     .orElse(Collections.emptyList());
+
+            args = new ArrayList<>(args);
+            args.add(slackRequest.getUserName());
+            args.add(slackRequest.getChannelName());
 
             return service.run(runScriptName, args);
         case LIST:
