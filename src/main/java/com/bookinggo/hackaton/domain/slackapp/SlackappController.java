@@ -80,10 +80,6 @@ class SlackappController {
                                     .map(Arrays::asList)
                                     .orElse(Collections.emptyList());
 
-            args = new ArrayList<>(args);
-            args.add(slackRequest.getUserName());
-            args.add(slackRequest.getChannelName());
-
             return service.run(runScriptName, args);
         case LIST:
             return service.list();
