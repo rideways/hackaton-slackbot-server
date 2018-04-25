@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Optional;
 
+import static java.util.UUID.randomUUID;
+
 @Slf4j
 public class SocketClientRunner {
     private final Socket workerSocket;
@@ -15,6 +17,7 @@ public class SocketClientRunner {
     private final BufferedReader inputReader;
 
     public SocketClientRunner(String host, int port) {
+        log.info("Opening up socket {}:{}", host, port);
         try {
             workerSocket = new Socket(host, port);
             outputWriter = new PrintWriter(workerSocket.getOutputStream(), true);
@@ -30,9 +33,16 @@ public class SocketClientRunner {
     }
 
     public Optional<String> sendAndReceive(String message) {
+        if (message.contains("\n")) {
+            throw new RuntimeException("DON'T DO THAT");
+        }
         try {
+            String requestId = randomUUID().toString();
+            log.info("{}] Sending message: {}", requestId, message);
             outputWriter.println(message);
-            return Optional.of(inputReader.readLine());
+            Optional<String> response = Optional.of(inputReader.readLine());
+            log.info("{}] Received response: {}", requestId, response);
+            return response;
         } catch (Exception e) {
             log.error("Sending message failed", e);
             return Optional.empty();

@@ -48,11 +48,7 @@ public class ScriptRunnerService {
 
         sendAndFailIfNotOk(SCRIPT_RUN_START, socketClientRunner::sendAndReceive, socketClientRunner::close);
         parameters.forEach(parameter -> sendAndFailIfNotOk(parameter, socketClientRunner::sendAndReceive, socketClientRunner::close));
-        log.info("Script run end? " + socketClientRunner.sendAndReceive(SCRIPT_RUN_END));
-        socketClientRunner.sendAndReceive("BLESSYOU");
-        Optional<String> blessyou = socketClientRunner.sendAndReceive("BLESSYOU");
-        log.info("amen? " + blessyou);
-        return blessyou;
+        return socketClientRunner.sendAndReceive(SCRIPT_RUN_END);
     }
 
     public void startScriptWorker(long scriptId) {
@@ -71,6 +67,7 @@ public class ScriptRunnerService {
     private SocketClientRunner runWorkerGetClient() {
         int port = portChecker.getAvailableWorkerPort()
                               .orElseThrow(() -> new RuntimeException("No worker port available"));
+        log.info("Starting script worker on port {}", port);
         forker.fork(singletonMap(SCRIPT_SOCKET_PORT, String.valueOf(port)));
         Thread.sleep(1000);
         return new SocketClientRunner(WORKER_HOSTNAME, port);
@@ -80,9 +77,9 @@ public class ScriptRunnerService {
         sendAndFailIfNotOk(scriptEntity.getLanguage(), socketClientRunner::sendAndReceive, socketClientRunner::close);
         sendAndFailIfNotOk(SCRIPT_BEGIN, socketClientRunner::sendAndReceive, socketClientRunner::close);
 
-//        for (String line : scriptContent.split("\n")) { // TODO in case
-        sendAndFailIfNotOk(scriptContent, socketClientRunner::sendAndReceive, socketClientRunner::close);
-//        }
+        for (String line : scriptContent.split("\n")) {
+            sendAndFailIfNotOk(line, socketClientRunner::sendAndReceive, socketClientRunner::close);
+        }
 
         sendAndFailIfNotOk(SCRIPT_END, socketClientRunner::sendAndReceive, socketClientRunner::close);
 

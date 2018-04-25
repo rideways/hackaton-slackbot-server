@@ -6,14 +6,12 @@ import com.bookinggo.hackaton.domain.common.exception.PathNotWriteableException;
 import com.bookinggo.hackaton.domain.script.dto.ScriptDto;
 import com.bookinggo.hackaton.infrastructure.properties.ApplicationProperties;
 import io.reactivex.Completable;
-import io.reactivex.Maybe;
 import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.nio.file.Files;
 
 import static io.reactivex.Completable.fromSingle;
 import static io.reactivex.Single.error;
@@ -28,21 +26,21 @@ class ScriptFileHandler {
     private final FileHandler fileHandler;
     private final ApplicationProperties applicationProperties;
 
-    Maybe<String> saveToFile(ScriptDto script) {
+    Single<String> saveToFile(ScriptDto script) {
         return saveToFile(script, randomUUID().toString());
     }
 
     Completable updateInFile(ScriptDto script, String scriptLocation) {
-        return fromSingle(saveToFile(script, new File(scriptLocation).getName()).toSingle());
+        return fromSingle(saveToFile(script, new File(scriptLocation).getName()));
     }
 
-    private Maybe<String> saveToFile(ScriptDto script, String scriptFileName) {
+    private Single<String> saveToFile(ScriptDto script, String scriptFileName) {
         return just(applicationProperties).map(ApplicationProperties::getScriptsStoragePath)
                                           .map(File::new)
                                           .flatMap(this::checkStoragePermissions)
                                           .map(scriptsStorage -> buildOwnerScriptsDirectory(script, scriptsStorage))
                                           .doOnSuccess(scriptsStorage -> log.info("Building scripts storage directory {}", scriptsStorage))
-                                          .filter(File::mkdirs)
+                                          .doOnSuccess(File::mkdirs)
                                           .map(s -> buildScriptFile(s, scriptFileName))
                                           .doOnSuccess(scriptFile -> log.info("Saving script file {}", scriptFile.getAbsolutePath()))
                                           .doOnSuccess(scriptFile -> fileHandler.saveFile(scriptFile, script.getContents()))
