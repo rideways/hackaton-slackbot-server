@@ -1,3 +1,3 @@
-{ String message, String sender, String channel ->
-    "Hello " + sender + " and welcome on " + channel
+{ String message, ignore1, ignore2 ->
+    return "Hello " + message + " !"
 }
