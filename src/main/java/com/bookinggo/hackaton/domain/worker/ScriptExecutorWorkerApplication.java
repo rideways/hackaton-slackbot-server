@@ -1,99 +1,63 @@
 package com.bookinggo.hackaton.domain.worker;
 
-import com.bookinggo.hackaton.domain.bla.EmptyRunnerAdapter;
 import com.bookinggo.hackaton.domain.bla.ScriptRunnerAdapter;
 import com.bookinggo.hackaton.domain.socket.SocketServerRunner;
 import com.bookinggo.hackaton.domain.socket.SocketServerRunner.RequestHandler;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.bookinggo.hackaton.domain.socket.SuperSimpleSerializer;
+import com.bookinggo.hackaton.ffstp.Message;
 
 import static com.bookinggo.hackaton.domain.bla.ScriptRunnerAdapterStaticFactory.createAdapter;
 import static com.bookinggo.hackaton.domain.common.ProcessLogger.writeLog;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.ERROR_LANGUAGE_NOT_RECOGNIZED;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.ERROR_UNKNOWN;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ChildMessage.OK;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ParentMessage.SCRIPT_BEGIN;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ParentMessage.SCRIPT_END;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ParentMessage.SCRIPT_RUN_END;
-import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocol.ParentMessage.SCRIPT_RUN_START;
+import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocolStatus.EXECUTE;
+import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocolStatus.LANGUAGE;
+import static com.bookinggo.hackaton.domain.common.ScriptRunnerSocketProtocolStatus.SCRIPT;
+import static com.bookinggo.hackaton.domain.socket.SocketServerRunner.explodeExceptionMessages;
+import static com.bookinggo.hackaton.ffstp.Status.ERROR;
+import static com.bookinggo.hackaton.ffstp.Status.OK;
 import static java.lang.Integer.parseInt;
 import static java.lang.System.getProperty;
 
 public class ScriptExecutorWorkerApplication implements RequestHandler {
 
     public final static String SCRIPT_SOCKET_PORT = "script.socket.port";
+    private final static Message<String> OKAY = new Message<>(OK, "");
+    private final static SuperSimpleSerializer SERIALIZER = new SuperSimpleSerializer();
 
     private String language;
-    private StringBuilder scriptCodeBuilder;
     private ScriptRunnerAdapter runnerAdapter;
-    private boolean scriptRunInProgress = false;
-    private List<String> params;
 
     public static void main(String[] args) {
         writeLog("getting property " + getProperty(SCRIPT_SOCKET_PORT));
-        int socketPort = parseInt(getProperty(SCRIPT_SOCKET_PORT));
+        int socketPort;
+        try {
+            socketPort = parseInt(getProperty(SCRIPT_SOCKET_PORT));
+        } catch (Exception e) {
+            writeLog("Catched exception " + explodeExceptionMessages(e));
+            socketPort = 6000;
+            writeLog("Running on fallback port " + socketPort);
+        }
 
         writeLog("starting worker listening on port " + socketPort);
         new SocketServerRunner(socketPort, new ScriptExecutorWorkerApplication()).startListening();
     }
 
     @Override
-    public String handleRequest(String request) {
-        if (language == null) {
-            writeLog("Setting language to " + request);
-            language = request;
-            return OK.name() + "1";
+    public Message<String> handleRequest(Message<String> request) {
+        if (LANGUAGE.in(request)) {
+            language = request.getData();
+            return OKAY;
         }
-        else if (scriptCodeBuilder == null && request.equalsIgnoreCase(SCRIPT_BEGIN.name())) {
-            writeLog("Building script code");
-            scriptCodeBuilder = new StringBuilder();
-            return OK.name() + "2";
+        else if (SCRIPT.in(request)) {
+            String scriptCode = request.getData();
+            runnerAdapter = createAdapter(scriptCode, language);
+            return OKAY;
         }
-        else if (scriptCodeBuilder != null) {
-            if (request.equalsIgnoreCase(SCRIPT_END.name())) {
-                writeLog("Finalizing script");
-                String scriptCode = scriptCodeBuilder.toString();
-                scriptCodeBuilder = null;
-                runnerAdapter = createAdapter(scriptCode, language);
-                writeLog("Created runner adapter");
-                if (runnerAdapter instanceof EmptyRunnerAdapter) {
-                    writeLog("Adapter is empty");
-                    return ERROR_LANGUAGE_NOT_RECOGNIZED.name();
-                }
-                return OK.name() + "3";
-            }
-            else {
-                writeLog("Appending request as source code");
-                scriptCodeBuilder.append(request);
-                return OK.name() + "4";
-            }
-        }
-        else if (request.equalsIgnoreCase(SCRIPT_RUN_START.name())) {
-            writeLog("Script starts running");
-            params = new ArrayList<>();
-            scriptRunInProgress = true;
-            return OK.name() + "5";
-        }
-        else if (scriptRunInProgress && !request.equalsIgnoreCase(SCRIPT_RUN_END.name())) {
-            writeLog("Adding param to script " + request);
-            params.add(request);
-            return OK.name() + "6";
-        }
-        else if (request.equalsIgnoreCase(SCRIPT_RUN_END.name())) {
-            scriptRunInProgress = false;
-            writeLog("Script ends running on request " + request);
-            writeLog("Params to use " + Arrays.toString(params.toArray()));
-            Object result = runnerAdapter.runScript(params.stream()
-                                                          .reduce("", (a, b) -> a + " " + b),
-                                                    null, null);
-            String stringResult = String.valueOf(result);
-            writeLog("Ending script and returning: " + stringResult);
-            return stringResult;
+        else if (EXECUTE.in(request)) {
+            Object result = runnerAdapter.runScript(request.getData(), null, null);
+            return new Message<>(OK, SERIALIZER.serialize(result));
         }
         else {
-            return ERROR_UNKNOWN.name();
+            return new Message<>(ERROR, null);
         }
     }
 }

@@ -34,7 +34,8 @@ class SlackappService {
                                                          .ownerSlackUserId(slackUserId)
                                                          .build());
 
-        threadPool.submit(() -> scriptRunnerService.startScriptWorker(scriptId));
+//        threadPool.submit(() -> scriptRunnerService.startScriptWorker(scriptId));
+        scriptRunnerService.startScriptWorker(scriptId);
 
         return SlackResponse.builder()
                             .text("added code successful id [" + scriptId + "]")
@@ -71,8 +72,10 @@ class SlackappService {
     SlackResponse run(String scriptName, List<String> args) {
         log.info("running script " + scriptName + " with args " + args);
 
-        String response = scriptRunnerService.runScript(scriptName, args)
-                                             .orElse("Running scripts didn't return anything");
+        String response = scriptRunnerService.runScript(scriptName,
+                                                        args.stream()
+                                                            .reduce((a, b) -> a + " " + b)
+                                                            .orElse(""));
 
         log.info("Response is " + response);
 
