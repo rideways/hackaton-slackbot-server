@@ -85,7 +85,9 @@ public class ScriptExecutorWorkerApplication implements RequestHandler {
             scriptRunInProgress = false;
             writeLog("Script ends running on request " + request);
             writeLog("Params to use " + Arrays.toString(params.toArray()));
-            Object result = runnerAdapter.runScript(params.get(0), params.get(1), params.get(2));
+            Object result = runnerAdapter.runScript(params.stream()
+                                                          .reduce("", (a, b) -> a + " " + b),
+                                                    null, null);
             String stringResult = String.valueOf(result);
             writeLog("Ending script and returning: " + stringResult);
             return stringResult;
