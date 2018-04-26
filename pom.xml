@@ -73,6 +73,13 @@
             <artifactId>commons-codec</artifactId>
             <version>1.11</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.jezorko</groupId>
+            <artifactId>ffstp</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/ffstp-1.0-SNAPSHOT.jar</systemPath>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
