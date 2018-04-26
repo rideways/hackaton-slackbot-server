@@ -8,12 +8,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 class SlackappService {
+
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
     private final ScriptFacade scriptFacade;
     private final ScriptRunnerService scriptRunnerService;
@@ -29,11 +34,16 @@ class SlackappService {
                                                          .ownerSlackUserId(slackUserId)
                                                          .build());
 
-        scriptRunnerService.startScriptWorker(scriptId);
+        threadPool.submit(() -> scriptRunnerService.startScriptWorker(scriptId));
 
         return SlackResponse.builder()
                             .text("added code successful id [" + scriptId + "]")
                             .build();
+    }
+
+    @PreDestroy
+    void closeThreadPool() {
+        threadPool.shutdown();
     }
 
     SlackResponse remove(String scriptName) {
